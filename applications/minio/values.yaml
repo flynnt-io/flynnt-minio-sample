@@ -1,0 +1,65 @@
+secrets:
+  existingSecret: minio-tenant-creds
+tenant:
+  name: "minio-storage"
+  configuration:
+    name: minio-tenant-creds
+  pools:
+    ## Servers specifies the number of MinIO Tenant Pods / Servers in this pool.
+    ## For standalone mode, supply 1. For distributed mode, supply 4 or more.
+    ## Note that the operator does not support upgrading from standalone to distributed mode.
+    - servers: 2
+      ## volumesPerServer specifies the number of volumes attached per MinIO Tenant Pod / Server.
+      volumesPerServer: 1
+      ## size specifies the capacity per volume
+      size: 50Gi
+      ## storageClass specifies the storage class name to be used for this pool
+      storageClassName: hcloud-volumes
+features:
+  domains:
+    minio:
+      - "https://s3.minio.example.com"
+    console: "https://console.minio.example.com"
+certificates:
+  requestAutoCert: false
+ingress:
+  api:
+    enabled: true
+    ingressClassName: "nginx"
+    annotations:
+      cert-manager.io/cluster-issuer: "letsencrypt-prod"
+      nginx.ingress.kubernetes.io/proxy-ssl-verify: "off"
+      nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+      nginx.ingress.kubernetes.io/rewrite-target: /
+      nginx.ingress.kubernetes.io/proxy-body-size: "0"
+      nginx.ingress.kubernetes.io/server-snippet: |
+        client_max_body_size 0;
+      nginx.ingress.kubernetes.io/configuration-snippet: |
+        chunked_transfer_encoding off;
+    tls:
+      - hosts:
+          - s3.minio.example.com
+        secretName: minio-api-secret
+    host: s3.minio.example.com
+    path: /
+    pathType: Prefix
+  console:
+    enabled: true
+    ingressClassName: "nginx"
+    annotations:
+      cert-manager.io/cluster-issuer: "letsencrypt-prod"
+      nginx.ingress.kubernetes.io/proxy-ssl-verify: "off"
+      nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+      nginx.ingress.kubernetes.io/rewrite-target: /
+      nginx.ingress.kubernetes.io/proxy-body-size: "0"
+      nginx.ingress.kubernetes.io/server-snippet: |
+        client_max_body_size 0;
+      nginx.ingress.kubernetes.io/configuration-snippet: |
+        chunked_transfer_encoding off;
+    tls:
+      - hosts:
+          - console.minio.example.com
+        secretName: minio-console-secret
+    host: console.minio.example.com
+    path: /
+    pathType: Prefix

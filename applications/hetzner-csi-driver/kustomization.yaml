@@ -1,0 +1,17 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+- https://raw.githubusercontent.com/hetznercloud/csi-driver/v2.4.0/deploy/kubernetes/hcloud-csi.yml
+
+patches:
+- patch: |-
+    - op: remove
+      path: /spec/template/spec/tolerations
+  target:
+    group: apps
+    kind: DaemonSet
+    name: hcloud-csi-node
+    version: v1
+
+generators:
+  - ./secret-generator.yaml
